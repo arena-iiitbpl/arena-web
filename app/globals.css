@@ -265,6 +265,73 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .apply-cta:hover { transform:translateY(-3px);box-shadow:0 14px 40px rgba(216,255,62,.3); }
 .apply-section small { margin-top: 16px; color: #8e9288; font-size: 11px; }
 
+/* Dedicated Team Section */
+.team-section {
+  position: relative;
+  padding: 100px clamp(24px, 7vw, 112px);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 176, 0, 0.08), transparent 45%), #070908;
+  border-top: 1px solid var(--line);
+}
+.team-container {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.team-badge {
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--sport);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.team-heading {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(38px, 5vw, 72px);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: #ffffff;
+  text-transform: uppercase;
+  margin: 0 0 20px;
+}
+.team-heading span {
+  color: var(--sport);
+}
+.team-subtext {
+  max-width: 580px;
+  font-size: 15px;
+  color: #aeb1aa;
+  line-height: 1.6;
+  margin: 0 0 36px;
+}
+.team-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  border-radius: 999px;
+  background: rgba(255, 176, 0, 0.1);
+  border: 1px solid var(--sport);
+  color: #ffffff;
+  font-family: system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 24px rgba(255, 176, 0, 0.15);
+}
+.team-btn:hover {
+  background: var(--sport);
+  color: #000000;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(255, 176, 0, 0.35);
+}
+
 footer { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; padding: 45px clamp(24px, 7vw, 112px); border-top: 1px solid var(--line); background: #070908; }
 footer > p { color: #92968d; font-size: 11px; line-height: 1.7; text-align: center; text-transform: uppercase; letter-spacing: .07em; }
 footer > div:last-child { display: flex; justify-content: flex-end; align-items: center; gap: 9px; color: #9da198; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
