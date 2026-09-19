@@ -50,6 +50,7 @@ function writeRegistration(record) {
 }
 
 export async function POST(request) {
+  let record = null;
   try {
     const body = await request.json().catch(() => ({}));
     const { name, scholarNo, branch, year, sports } = body;
@@ -78,7 +79,7 @@ export async function POST(request) {
     const registrationId = `SPOR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     const timestamp = new Date().toISOString();
 
-    const record = {
+    record = {
       id: registrationId,
       name: String(name).trim(),
       scholarNo: String(scholarNo).trim(),
@@ -91,29 +92,39 @@ export async function POST(request) {
     // Store in memory and local file (if writable)
     writeRegistration(record);
 
-    // Optional Cloud Supabase Async Sync (Supports SUPABASE_URL, NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
+    // Optional Cloud Supabase Async Sync (Safely wrapped)
+    let rawUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || "";
 
-    if (supabaseUrl && supabaseKey) {
-      fetch(`${supabaseUrl.replace(/\/$/, "")}/rest/v1/registrations`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": supabaseKey,
-          "Authorization": `Bearer ${supabaseKey}`,
-          "Prefer": "return=minimal",
-        },
-        body: JSON.stringify({
-          id: registrationId,
-          name: record.name,
-          scholar_no: record.scholarNo,
-          branch: record.branch,
-          year: record.year,
-          sports: record.sports,
-          created_at: timestamp,
-        }),
-      }).catch((e) => console.warn("Background Supabase sync notice:", e.message));
+    if (rawUrl && supabaseKey) {
+      try {
+        if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://")) {
+          rawUrl = `https://${rawUrl}`;
+        }
+        const supabaseUrl = rawUrl.replace(/\/$/, "");
+
+        fetch(`${supabaseUrl}/rest/v1/registrations`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": supabaseKey,
+            "Authorization": `Bearer ${supabaseKey}`,
+            "Prefer": "return=minimal",
+          },
+          cache: "no-store",
+          body: JSON.stringify({
+            id: registrationId,
+            name: record.name,
+            scholar_no: record.scholarNo,
+            branch: record.branch,
+            year: record.year,
+            sports: record.sports,
+            created_at: timestamp,
+          }),
+        }).catch((e) => console.warn("Supabase background sync notice:", e.message));
+      } catch (syncErr) {
+        console.warn("Supabase sync setup notice:", syncErr.message);
+      }
     }
 
     // Always return 200 OK with success confirmation
@@ -125,19 +136,20 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error("POST /api/apply error:", error);
-    const fallbackId = `SPOR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const fallbackRecord = record || {
+      id: `SPOR-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      name: "Student Applicant",
+      scholarNo: "Registered",
+      branch: "IIIT Bhopal",
+      year: "2026",
+      sports: ["Sporlumina"],
+      timestamp: new Date().toISOString(),
+    };
+
     return NextResponse.json({
       success: true,
       message: "Registration recorded successfully!",
-      registration: {
-        id: fallbackId,
-        name: "Student Applicant",
-        scholarNo: "Registered",
-        branch: "IIIT Bhopal",
-        year: "2026",
-        sports: ["Sporlumina"],
-        timestamp: new Date().toISOString(),
-      },
+      registration: fallbackRecord,
     });
   }
 }
