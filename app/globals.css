@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #050608;
+    color: #f1f5f9;
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+  }
+}
+
+/* Outline / Stroke Text Effect for "BEYOND" */
+.text-stroke-white {
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.9);
+  color: transparent;
+}
+
+.text-stroke-bold {
+  -webkit-text-stroke: 2px #ffffff;
+  color: transparent;
+}
+
+@media (max-width: 640px) {
+  .text-stroke-white, .text-stroke-bold {
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.9);
+  }
+}
+
+/* Glowing Amber & Cyan Accent Bars */
+.amber-glow-bar {
+  background: #f59e0b;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.8), 0 0 40px rgba(245, 158, 11, 0.4);
+}
+
+.cyan-glow-bar {
+  background: #06b6d4;
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.8), 0 0 40px rgba(6, 182, 212, 0.4);
+}
+
+/* Tech Wireframe Grid & Moving Background Keyframes */
+.bg-tech-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+/* Smooth Moving Background Orbs Animation */
+@keyframes floatOrb1 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(80px, -50px) scale(1.15);
+  }
+  66% {
+    transform: translate(-60px, 40px) scale(0.9);
+  }
+}
+
+@keyframes floatOrb2 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(-70px, 60px) scale(1.1);
+  }
+  66% {
+    transform: translate(50px, -40px) scale(0.95);
+  }
+}
+
+.animate-blob-amber {
+  animation: floatOrb1 18s ease-in-out infinite;
+}
+
+.animate-blob-cyan {
+  animation: floatOrb2 22s ease-in-out infinite;
+}
+
+/* Continuous Marquee Ticker Animation */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: 200%;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* High-tech Card Glassmorphism */
+.tech-card {
+  background: rgba(10, 12, 16, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #050608;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #f59e0b;
+}
