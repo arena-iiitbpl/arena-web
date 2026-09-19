@@ -5,39 +5,58 @@ import path from "path";
 // Path to local JSON database store
 const DB_PATH = path.join(process.cwd(), "data", "registrations.json");
 
+// In-memory fallback array for serverless environments (Vercel read-only FS)
+let inMemoryRegistrations = [];
+
 /**
  * Ensures data directory & registrations file exist
  */
 function ensureDatabase() {
-  const dir = path.dirname(DB_PATH);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  if (!fs.existsSync(DB_PATH)) {
-    fs.writeFileSync(DB_PATH, JSON.stringify([], null, 2), "utf-8");
+  try {
+    const dir = path.dirname(DB_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    if (!fs.existsSync(DB_PATH)) {
+      fs.writeFileSync(DB_PATH, JSON.stringify([], null, 2), "utf-8");
+    }
+  } catch (err) {
+    // Read-only filesystem on Vercel / Serverless
+    console.warn("Serverless environment detected (read-only filesystem):", err.message);
   }
 }
 
 /**
- * Reads all registration entries from local JSON database
+ * Reads all registration entries from local JSON database or memory
  */
-function getLocalRegistrations() {
+function getRegistrations() {
   ensureDatabase();
   try {
-    const fileData = fs.readFileSync(DB_PATH, "utf-8");
-    return JSON.parse(fileData || "[]");
+    if (fs.existsSync(DB_PATH)) {
+      const fileData = fs.readFileSync(DB_PATH, "utf-8");
+      const parsed = JSON.parse(fileData || "[]");
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
   } catch (error) {
-    console.error("Error reading local database:", error);
-    return [];
+    console.warn("Reading local database warning:", error.message);
   }
+  return inMemoryRegistrations;
 }
 
 /**
- * Saves updated registrations array locally
+ * Saves updated registrations array (with EROFS serverless fallback)
  */
-function saveLocalRegistrations(registrations) {
-  ensureDatabase();
-  fs.writeFileSync(DB_PATH, JSON.stringify(registrations, null, 2), "utf-8");
+function saveRegistrations(registrations) {
+  inMemoryRegistrations = registrations;
+  try {
+    ensureDatabase();
+    fs.writeFileSync(DB_PATH, JSON.stringify(registrations, null, 2), "utf-8");
+  } catch (err) {
+    // EROFS on Vercel is expected and safe when using Supabase or in-memory
+    console.warn("Local file write skipped (Serverless environment):", err.message);
+  }
 }
 
 export async function POST(request) {
@@ -45,7 +64,7 @@ export async function POST(request) {
     const body = await request.json();
     const { name, scholarNo, branch, year, sports } = body;
 
-    // Validation
+    // Strict Validation
     if (!name || typeof name !== "string" || !name.trim()) {
       return NextResponse.json({ error: "Full Name is required." }, { status: 400 });
     }
@@ -79,14 +98,15 @@ export async function POST(request) {
       timestamp,
     };
 
-    // Check if Cloud Supabase Credentials are set in .env.local
+    // Check if Cloud Supabase Credentials are configured
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+    let supabaseSaved = false;
+
     if (supabaseUrl && supabaseKey) {
       try {
-        // Direct REST insertion into Supabase table 'registrations'
-        const supabaseRes = await fetch(`${supabaseUrl}/rest/v1/registrations`, {
+        const supabaseRes = await fetch(`${supabaseUrl.replace(/\/$/, "")}/rest/v1/registrations`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -105,18 +125,21 @@ export async function POST(request) {
           }),
         });
 
-        if (!supabaseRes.ok) {
-          console.warn("Supabase REST insert warning, falling back to local store");
+        if (supabaseRes.ok) {
+          supabaseSaved = true;
+        } else {
+          const supabaseErrText = await supabaseRes.text();
+          console.warn("Supabase insert warning:", supabaseRes.status, supabaseErrText);
         }
       } catch (cloudErr) {
-        console.error("Cloud DB sync error:", cloudErr);
+        console.error("Supabase connection error:", cloudErr.message);
       }
     }
 
-    // Always record locally as well for fail-safe persistence
-    const currentRegistrations = getLocalRegistrations();
+    // Record locally and in-memory
+    const currentRegistrations = getRegistrations();
     const existingIndex = currentRegistrations.findIndex(
-      (r) => r.scholarNo.toLowerCase().trim() === scholarNo.toLowerCase().trim()
+      (r) => r.scholarNo && r.scholarNo.toLowerCase().trim() === scholarNo.toLowerCase().trim()
     );
 
     if (existingIndex !== -1) {
@@ -129,18 +152,19 @@ export async function POST(request) {
       currentRegistrations.push(newRecord);
     }
 
-    saveLocalRegistrations(currentRegistrations);
+    saveRegistrations(currentRegistrations);
 
     return NextResponse.json({
       success: true,
       message: existingIndex !== -1 ? "Registration updated successfully!" : "Registration submitted successfully!",
       registration: newRecord,
+      supabaseSaved,
       totalEntries: currentRegistrations.length,
     });
   } catch (error) {
     console.error("POST /api/apply error:", error);
     return NextResponse.json(
-      { error: "Server error processing registration. Please try again." },
+      { error: `Registration error: ${error.message || "Please check your inputs."}` },
       { status: 500 }
     );
   }
@@ -148,17 +172,16 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
-    const registrations = getLocalRegistrations();
+    const registrations = getRegistrations();
     const { searchParams } = new URL(request.url);
     const format = searchParams.get("format");
 
-    // CSV export endpoint for event organizers
     if (format === "csv") {
       const headers = "Registration ID,Name,Scholar No,Branch,Year,Sports,Timestamp\n";
       const rows = registrations
         .map(
           (r) =>
-            `"${r.id}","${r.name}","${r.scholarNo}","${r.branch}","${r.year}","${r.sports.join(
+            `"${r.id}","${r.name}","${r.scholarNo}","${r.branch}","${r.year}","${(r.sports || []).join(
               "; "
             )}","${r.timestamp}"`
         )
