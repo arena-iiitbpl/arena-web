@@ -19,23 +19,23 @@ function ensureDatabase() {
 }
 
 /**
- * Reads all registration entries
+ * Reads all registration entries from local JSON database
  */
-function getRegistrations() {
+function getLocalRegistrations() {
   ensureDatabase();
   try {
     const fileData = fs.readFileSync(DB_PATH, "utf-8");
     return JSON.parse(fileData || "[]");
   } catch (error) {
-    console.error("Error reading database:", error);
+    console.error("Error reading local database:", error);
     return [];
   }
 }
 
 /**
- * Saves updated registrations array
+ * Saves updated registrations array locally
  */
-function saveRegistrations(registrations) {
+function saveLocalRegistrations(registrations) {
   ensureDatabase();
   fs.writeFileSync(DB_PATH, JSON.stringify(registrations, null, 2), "utf-8");
 }
@@ -66,13 +66,6 @@ export async function POST(request) {
       return NextResponse.json({ error: "Please select at least one sport to participate in." }, { status: 400 });
     }
 
-    const currentRegistrations = getRegistrations();
-
-    // Check for duplicate scholar number registration
-    const existingIndex = currentRegistrations.findIndex(
-      (r) => r.scholarNo.toLowerCase().trim() === scholarNo.toLowerCase().trim()
-    );
-
     const registrationId = `SPOR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     const timestamp = new Date().toISOString();
 
@@ -86,19 +79,57 @@ export async function POST(request) {
       timestamp,
     };
 
+    // Check if Cloud Supabase Credentials are set in .env.local
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (supabaseUrl && supabaseKey) {
+      try {
+        // Direct REST insertion into Supabase table 'registrations'
+        const supabaseRes = await fetch(`${supabaseUrl}/rest/v1/registrations`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": supabaseKey,
+            "Authorization": `Bearer ${supabaseKey}`,
+            "Prefer": "return=minimal",
+          },
+          body: JSON.stringify({
+            id: registrationId,
+            name: name.trim(),
+            scholar_no: scholarNo.trim(),
+            branch: branch.trim(),
+            year: year.trim(),
+            sports: sports,
+            created_at: timestamp,
+          }),
+        });
+
+        if (!supabaseRes.ok) {
+          console.warn("Supabase REST insert warning, falling back to local store");
+        }
+      } catch (cloudErr) {
+        console.error("Cloud DB sync error:", cloudErr);
+      }
+    }
+
+    // Always record locally as well for fail-safe persistence
+    const currentRegistrations = getLocalRegistrations();
+    const existingIndex = currentRegistrations.findIndex(
+      (r) => r.scholarNo.toLowerCase().trim() === scholarNo.toLowerCase().trim()
+    );
+
     if (existingIndex !== -1) {
-      // Update existing record
       currentRegistrations[existingIndex] = {
         ...currentRegistrations[existingIndex],
         ...newRecord,
         updatedAt: timestamp,
       };
     } else {
-      // Append new record
       currentRegistrations.push(newRecord);
     }
 
-    saveRegistrations(currentRegistrations);
+    saveLocalRegistrations(currentRegistrations);
 
     return NextResponse.json({
       success: true,
@@ -117,11 +148,11 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
-    const registrations = getRegistrations();
+    const registrations = getLocalRegistrations();
     const { searchParams } = new URL(request.url);
     const format = searchParams.get("format");
 
-    // Optional CSV export endpoint for event organizers
+    // CSV export endpoint for event organizers
     if (format === "csv") {
       const headers = "Registration ID,Name,Scholar No,Branch,Year,Sports,Timestamp\n";
       const rows = registrations
