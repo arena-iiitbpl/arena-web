@@ -18,7 +18,6 @@ function readAllRegistrations() {
       const content = fs.readFileSync(DB_PATH, "utf-8");
       const diskRecords = JSON.parse(content || "[]");
       if (Array.isArray(diskRecords)) {
-        // Merge disk records
         diskRecords.forEach((r) => {
           if (r && r.id && !memoryStore.has(r.id)) {
             memoryStore.set(r.id, r);
@@ -92,9 +91,9 @@ export async function POST(request) {
     // Store in memory and local file (if writable)
     writeRegistration(record);
 
-    // Optional Cloud Supabase Async Sync (if keys configured)
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    // Optional Cloud Supabase Async Sync (Supports SUPABASE_URL, NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
 
     if (supabaseUrl && supabaseKey) {
       fetch(`${supabaseUrl.replace(/\/$/, "")}/rest/v1/registrations`, {
@@ -126,7 +125,6 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error("POST /api/apply error:", error);
-    // Fallback safe 200 response so user is never blocked
     const fallbackId = `SPOR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     return NextResponse.json({
       success: true,
