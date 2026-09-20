@@ -147,7 +147,7 @@ export default function TeamPage() {
         {/* Header Section */}
         <div className="text-center mb-16 relative">
           <span className="text-xs font-mono font-bold uppercase tracking-[0.25em] text-amber-400 block mb-3">
-            A.R.E.N.A DIRECTORY • {totalMembers} MEMBERS
+            A.R.E.N.A DIRECTORY
           </span>
 
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase tracking-tight font-['Syne'] mb-4 text-white">
@@ -165,18 +165,13 @@ export default function TeamPage() {
             {categories.map((cat, idx) => (
               <section key={cat.categoryName} className="space-y-8">
                 {/* Team Category Title Header */}
-                <div className="border-b border-zinc-800/80 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-                  <div>
-                    <span className="text-[11px] font-mono font-bold uppercase tracking-[0.2em] text-amber-400 block mb-1">
-                      0{idx + 1} // TEAM CATEGORY
-                    </span>
-                    <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tight font-['Syne'] text-white">
-                      {cat.categoryName}
-                    </h2>
-                  </div>
-                  <span className="text-xs font-mono text-amber-400 bg-amber-400/10 border border-amber-400/30 px-3.5 py-1.5 rounded-full w-fit font-bold">
-                    {cat.members.length} {cat.members.length === 1 ? "Member" : "Members"}
+                <div className="border-b border-zinc-800/80 pb-4">
+                  <span className="text-[11px] font-mono font-bold uppercase tracking-[0.2em] text-amber-400 block mb-1">
+                    0{idx + 1} // TEAM CATEGORY
                   </span>
+                  <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tight font-['Syne'] text-white">
+                    {cat.categoryName}
+                  </h2>
                 </div>
 
                 {/* Member Grid */}
