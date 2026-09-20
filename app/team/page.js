@@ -13,10 +13,10 @@ export const revalidate = 0;
 const PREFERRED_TEAM_ORDER = [
   "Faculty In-Charge",
   "Core Executive Council",
+  "Tech Team",
   "Operations & Esports",
   "Event Coordinators",
   "Media & Design",
-  "Tech Team",
   "PG Volunteers",
 ];
 
