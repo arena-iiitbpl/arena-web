@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { User } from "lucide-react";
 
-export default function TeamCard({ name, imageSrc }) {
+export default function TeamCard({ name, post, imageSrc }) {
   const [imageError, setImageError] = useState(false);
 
   return (
@@ -15,7 +15,7 @@ export default function TeamCard({ name, imageSrc }) {
         {!imageError && imageSrc ? (
           <Image
             src={imageSrc}
-            alt={name}
+            alt={`${name} - ${post || "Team Member"}`}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
@@ -39,14 +39,16 @@ export default function TeamCard({ name, imageSrc }) {
         <div className="absolute top-0 left-0 right-0 h-1 bg-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
 
-      {/* Name Container Below Image */}
+      {/* Name and Post Container Below Image */}
       <div className="p-4 sm:p-5 text-center bg-[#07090d] border-t border-zinc-800/60 flex flex-col justify-center flex-grow">
         <h3 className="text-base sm:text-lg font-bold text-white font-['Syne'] tracking-wide group-hover:text-amber-400 transition-colors line-clamp-1">
           {name}
         </h3>
-        <span className="text-[10px] font-mono font-bold text-amber-400/90 uppercase tracking-widest mt-0.5">
-          A.R.E.N.A TEAM
-        </span>
+        {post && (
+          <span className="text-[11px] font-mono font-semibold text-amber-400/90 tracking-wider mt-1 line-clamp-1">
+            {post}
+          </span>
+        )}
       </div>
     </div>
   );
