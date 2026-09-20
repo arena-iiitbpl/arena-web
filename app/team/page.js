@@ -17,6 +17,7 @@ const PREFERRED_TEAM_ORDER = [
   "Operations & Esports",
   "Event Coordinators",
   "Media & Design",
+  "PG Representatives",
   "PG Volunteers",
 ];
 
@@ -24,14 +25,24 @@ function parseMemberFile(fileName, subPath = "") {
   const ext = path.extname(fileName);
   const nameWithoutExt = path.basename(fileName, ext);
 
+  let order = 999;
   let name = nameWithoutExt;
   let post = "A.R.E.N.A Team";
 
-  // Parse "Name,Post.ext" format
+  // Parse "number,name,post.ext" OR "name,post.ext"
   if (nameWithoutExt.includes(",")) {
     const parts = nameWithoutExt.split(",");
-    name = parts[0].trim();
-    post = parts.slice(1).join(",").trim();
+    
+    // Format: number,name,post.ext
+    if (parts.length >= 3 && !isNaN(parseInt(parts[0].trim()))) {
+      order = parseInt(parts[0].trim());
+      name = parts[1].trim();
+      post = parts.slice(2).join(",").trim();
+    } else {
+      // Format: name,post.ext
+      name = parts[0].trim();
+      post = parts.slice(1).join(",").trim();
+    }
   } else {
     name = nameWithoutExt
       .replace(/[-_]+/g, " ")
@@ -48,6 +59,7 @@ function parseMemberFile(fileName, subPath = "") {
   return {
     id: subPath ? `${subPath}/${fileName}` : fileName,
     filename: fileName,
+    order,
     name,
     post,
     imageSrc: relativeUrl,
@@ -74,7 +86,8 @@ function getTeamCategories() {
 
         const members = files
           .filter((f) => !f.startsWith(".") && validExts.includes(path.extname(f).toLowerCase()))
-          .map((f) => parseMemberFile(f, catName));
+          .map((f) => parseMemberFile(f, catName))
+          .sort((a, b) => a.order - b.order);
 
         if (members.length > 0) {
           categoryMap.set(catName, members);
