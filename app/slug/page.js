@@ -331,9 +331,6 @@ export default function SlugAdminPage() {
                   <span className="text-2xl font-black font-mono text-white block">
                     {totalSportsRegistrations}
                   </span>
-                  <span className="text-[10px] font-mono text-amber-400 block mt-0.5">
-                    {registrations.length} {registrations.length === 1 ? "Applicant" : "Applicants"}
-                  </span>
                 </div>
               </div>
 
