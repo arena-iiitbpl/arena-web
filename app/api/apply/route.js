@@ -254,6 +254,58 @@ function generateXlsSpreadsheet(records) {
 
 export async function GET(request) {
   try {
+    // Sync with Cloud Supabase DB first if configured
+    let rawUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || "";
+
+    if (rawUrl && supabaseKey) {
+      try {
+        if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://")) {
+          rawUrl = `https://${rawUrl}`;
+        }
+        const supabaseUrl = rawUrl.replace(/\/$/, "");
+
+        const supaRes = await fetch(`${supabaseUrl}/rest/v1/registrations?select=*&order=created_at.desc`, {
+          method: "GET",
+          headers: {
+            "apikey": supabaseKey,
+            "Authorization": `Bearer ${supabaseKey}`,
+          },
+          cache: "no-store",
+        });
+
+        if (supaRes.ok) {
+          const supaRecords = await supaRes.json();
+          if (Array.isArray(supaRecords)) {
+            supaRecords.forEach((item) => {
+              let parsedSports = item.sports;
+              if (typeof item.sports === "string") {
+                try {
+                  parsedSports = JSON.parse(item.sports);
+                } catch (e) {
+                  parsedSports = [item.sports];
+                }
+              }
+
+              const formattedRecord = {
+                id: item.id || `SPOR-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+                name: item.name || "",
+                scholarNo: item.scholar_no || item.scholarNo || "",
+                branch: item.branch || "",
+                year: item.year || "",
+                sports: Array.isArray(parsedSports) ? parsedSports : [String(parsedSports || "")],
+                timestamp: item.created_at || item.timestamp || new Date().toISOString(),
+              };
+
+              memoryStore.set(formattedRecord.id, formattedRecord);
+            });
+          }
+        }
+      } catch (supaErr) {
+        console.warn("Supabase fetch notice:", supaErr.message);
+      }
+    }
+
     const records = readAllRegistrations();
     const { searchParams } = new URL(request.url);
     const format = searchParams.get("format");
