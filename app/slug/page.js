@@ -148,6 +148,12 @@ export default function SlugAdminPage() {
     new Set(registrations.map((r) => (r.branch || "").trim().toUpperCase()).filter(Boolean))
   );
 
+  // Total Registrations = Sum of (candidate * selected sports)
+  const totalSportsRegistrations = registrations.reduce((sum, r) => {
+    const sportsCount = Array.isArray(r.sports) ? r.sports.length : 1;
+    return sum + sportsCount;
+  }, 0);
+
   const sportsFrequency = {};
   registrations.forEach((r) => {
     if (Array.isArray(r.sports)) {
@@ -320,10 +326,13 @@ export default function SlugAdminPage() {
                 </div>
                 <div>
                   <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">
-                    TOTAL APPLICANTS
+                    TOTAL REGISTRATIONS
                   </span>
-                  <span className="text-2xl font-black font-mono text-white">
-                    {registrations.length}
+                  <span className="text-2xl font-black font-mono text-white block">
+                    {totalSportsRegistrations}
+                  </span>
+                  <span className="text-[10px] font-mono text-amber-400 block mt-0.5">
+                    {registrations.length} {registrations.length === 1 ? "Applicant" : "Applicants"}
                   </span>
                 </div>
               </div>

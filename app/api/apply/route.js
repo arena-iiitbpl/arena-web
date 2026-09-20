@@ -9,6 +9,17 @@ const DB_PATH = path.join(process.cwd(), "data", "registrations.json");
 const memoryStore = new Map();
 
 /**
+ * Calculates total registrations as the sum of selected sports across all candidates
+ */
+function getTotalSportsEntries(records) {
+  if (!Array.isArray(records)) return 0;
+  return records.reduce((sum, r) => {
+    const sportsCount = Array.isArray(r?.sports) ? r.sports.length : 1;
+    return sum + sportsCount;
+  }, 0);
+}
+
+/**
  * Safely reads registrations from memory or disk
  */
 function readAllRegistrations() {
@@ -145,11 +156,13 @@ export async function POST(request) {
     }
 
     // Always return 200 OK with success confirmation
+    const allCurrentRecords = Array.from(memoryStore.values());
     return NextResponse.json({
       success: true,
       message: "Registration submitted successfully!",
       registration: record,
-      totalEntries: memoryStore.size,
+      totalEntries: getTotalSportsEntries(allCurrentRecords),
+      totalApplicants: allCurrentRecords.length,
     });
   } catch (error) {
     console.error("POST /api/apply error:", error);
@@ -340,7 +353,8 @@ export async function GET(request) {
     }
 
     return NextResponse.json({
-      totalEntries: records.length,
+      totalEntries: getTotalSportsEntries(records),
+      totalApplicants: records.length,
       capacity: 3000,
       registrations: records,
     });
