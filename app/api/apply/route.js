@@ -49,6 +49,23 @@ function writeRegistration(record) {
   }
 }
 
+/**
+ * Safely deletes a registration from memory and disk (if writable)
+ */
+function deleteRegistration(id) {
+  memoryStore.delete(id);
+
+  try {
+    const dir = path.dirname(DB_PATH);
+    if (fs.existsSync(DB_PATH)) {
+      const allRecords = Array.from(memoryStore.values());
+      fs.writeFileSync(DB_PATH, JSON.stringify(allRecords, null, 2), "utf-8");
+    }
+  } catch (err) {
+    // Vercel serverless read-only filesystem - safely ignored
+  }
+}
+
 export async function POST(request) {
   let record = null;
   try {
@@ -186,5 +203,52 @@ export async function GET(request) {
     });
   } catch (error) {
     return NextResponse.json({ totalEntries: 0, registrations: [] });
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Registration ID is required." }, { status: 400 });
+    }
+
+    // Delete from local memory and disk JSON
+    deleteRegistration(id);
+
+    // Optional Cloud Supabase Sync Delete
+    let rawUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || "";
+
+    if (rawUrl && supabaseKey) {
+      try {
+        if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://")) {
+          rawUrl = `https://${rawUrl}`;
+        }
+        const supabaseUrl = rawUrl.replace(/\/$/, "");
+
+        fetch(`${supabaseUrl}/rest/v1/registrations?id=eq.${encodeURIComponent(id)}`, {
+          method: "DELETE",
+          headers: {
+            "apikey": supabaseKey,
+            "Authorization": `Bearer ${supabaseKey}`,
+          },
+          cache: "no-store",
+        }).catch((e) => console.warn("Supabase background delete notice:", e.message));
+      } catch (syncErr) {
+        console.warn("Supabase delete setup notice:", syncErr.message);
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Registration ${id} deleted successfully.`,
+      totalEntries: memoryStore.size,
+    });
+  } catch (error) {
+    console.error("DELETE /api/apply error:", error);
+    return NextResponse.json({ error: "Failed to delete registration." }, { status: 500 });
   }
 }
