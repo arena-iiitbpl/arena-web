@@ -18,7 +18,8 @@ import {
   Users,
   Trophy,
   Loader2,
-  Building2
+  Building2,
+  FileSpreadsheet
 } from "lucide-react";
 
 export default function SlugAdminPage() {
@@ -274,12 +275,23 @@ export default function SlugAdminPage() {
                 </button>
 
                 <a
+                  href="/api/apply?format=xls"
+                  download="Sporlumina_Registrations.xls"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 text-black font-mono font-bold text-xs uppercase tracking-wider hover:bg-amber-300 transition-colors shadow-lg shadow-amber-400/10"
+                  title="Export database as Microsoft Excel Spreadsheet (.xls)"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span>Export .XLS</span>
+                </a>
+
+                <a
                   href="/api/apply?format=csv"
                   download="Sporlumina_Registrations.csv"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 text-black font-mono font-bold text-xs uppercase tracking-wider hover:bg-amber-300 transition-colors shadow-lg shadow-amber-400/10"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-mono text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors"
+                  title="Export database as CSV file"
                 >
                   <Download className="w-4 h-4" />
-                  <span>Export CSV</span>
+                  <span>CSV</span>
                 </a>
 
                 <button

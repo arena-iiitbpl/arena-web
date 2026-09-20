@@ -171,11 +171,102 @@ export async function POST(request) {
   }
 }
 
+/**
+ * Generates an Excel Spreadsheet XML document (.xls format)
+ */
+function generateXlsSpreadsheet(records) {
+  const escapeXml = (str) =>
+    String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;");
+
+  const rowsXml = records
+    .map((r) => {
+      const sportsStr = Array.isArray(r.sports) ? r.sports.join("; ") : String(r.sports || "");
+      const formattedDate = r.timestamp
+        ? new Date(r.timestamp).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+        : "";
+
+      return `
+   <Row ss:Height="22">
+    <Cell ss:StyleID="IDCell"><Data ss:Type="String">${escapeXml(r.id)}</Data></Cell>
+    <Cell ss:StyleID="TextCell"><Data ss:Type="String">${escapeXml(r.name)}</Data></Cell>
+    <Cell ss:StyleID="TextCell"><Data ss:Type="String">${escapeXml(r.scholarNo)}</Data></Cell>
+    <Cell ss:StyleID="TextCell"><Data ss:Type="String">${escapeXml(r.branch)}</Data></Cell>
+    <Cell ss:StyleID="TextCell"><Data ss:Type="String">${escapeXml(r.year)}</Data></Cell>
+    <Cell ss:StyleID="TextCell"><Data ss:Type="String">${escapeXml(sportsStr)}</Data></Cell>
+    <Cell ss:StyleID="DateCell"><Data ss:Type="String">${escapeXml(formattedDate)}</Data></Cell>
+   </Row>`;
+    })
+    .join("");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="Header">
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#FFFFFF" ss:Bold="1"/>
+   <Interior ss:Color="#1E293B" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+  </Style>
+  <Style ss:ID="IDCell">
+   <Font ss:FontName="Calibri" ss:Size="10" ss:Color="#D97706" ss:Bold="1"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+  </Style>
+  <Style ss:ID="TextCell">
+   <Font ss:FontName="Calibri" ss:Size="10" ss:Color="#0F172A"/>
+   <Alignment ss:Vertical="Center"/>
+  </Style>
+  <Style ss:ID="DateCell">
+   <Font ss:FontName="Calibri" ss:Size="10" ss:Color="#64748B"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Sporlumina Registrations">
+  <Table>
+   <Column ss:Width="130"/>
+   <Column ss:Width="180"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="110"/>
+   <Column ss:Width="100"/>
+   <Column ss:Width="280"/>
+   <Column ss:Width="180"/>
+   <Row ss:Height="28" ss:StyleID="Header">
+    <Cell><Data ss:Type="String">Registration ID</Data></Cell>
+    <Cell><Data ss:Type="String">Student Name</Data></Cell>
+    <Cell><Data ss:Type="String">Scholar No / Roll No</Data></Cell>
+    <Cell><Data ss:Type="String">Branch</Data></Cell>
+    <Cell><Data ss:Type="String">Academic Year</Data></Cell>
+    <Cell><Data ss:Type="String">Registered Sports</Data></Cell>
+    <Cell><Data ss:Type="String">Registration Timestamp</Data></Cell>
+   </Row>${rowsXml}
+  </Table>
+ </Worksheet>
+</Workbook>`;
+}
+
 export async function GET(request) {
   try {
     const records = readAllRegistrations();
     const { searchParams } = new URL(request.url);
     const format = searchParams.get("format");
+
+    if (format === "xls" || format === "excel") {
+      const xlsContent = generateXlsSpreadsheet(records);
+      return new Response(xlsContent, {
+        headers: {
+          "Content-Type": "application/vnd.ms-excel",
+          "Content-Disposition": 'attachment; filename="Sporlumina_Registrations.xls"',
+        },
+      });
+    }
 
     if (format === "csv") {
       const headers = "Registration ID,Name,Scholar No,Branch,Year,Sports,Timestamp\n";
