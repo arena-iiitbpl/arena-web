@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MovingBackground from "@/components/MovingBackground";
@@ -243,19 +244,45 @@ export default function ApplyPage() {
               </div>
             </div>
 
-            {/* Action Buttons including Instagram Follow */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            {/* Instagram QR Code & Community Card */}
+            <div className="bg-gradient-to-br from-purple-950/40 via-pink-950/30 to-amber-950/40 border border-pink-500/40 rounded-3xl p-6 sm:p-8 mb-8 text-center flex flex-col items-center shadow-xl shadow-pink-500/5">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-[0.25em] text-pink-400 block mb-2">
+                OFFICIAL INSTAGRAM COMMUNITY
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-white font-['Syne'] uppercase mb-4">
+                SCAN QR & FOLLOW @ARENA_IIITB
+              </h3>
+
+              {/* QR Image Container */}
+              <div className="relative w-48 h-48 bg-white p-3 rounded-2xl shadow-2xl shadow-pink-500/20 mb-5 border border-pink-400/50 group hover:scale-105 transition-transform duration-300">
+                <Image
+                  src="/images/instagram-qr.jpg"
+                  alt="A.R.E.N.A Instagram QR Code - @arena_iiitb"
+                  width={192}
+                  height={192}
+                  className="w-full h-full object-contain rounded-xl"
+                  priority
+                />
+              </div>
+
+              <p className="text-xs text-zinc-300 font-['Space_Grotesk'] max-w-sm mb-5 leading-relaxed">
+                Scan with your camera or click the button below to get real-time Sporlumina 2026 match updates, fixtures, and highlights!
+              </p>
+
               <a
                 href="https://www.instagram.com/arena_iiitb?stkn=OGR5ZHphMWYwaTE2"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-full bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 text-white font-extrabold text-xs uppercase tracking-widest font-mono hover:opacity-90 transition-all duration-300 shadow-lg shadow-pink-500/20"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 text-white font-extrabold text-xs uppercase tracking-widest font-mono hover:opacity-95 transition-all duration-300 shadow-lg shadow-pink-500/25 group"
               >
-                <InstagramIcon className="w-4 h-4" />
+                <InstagramIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
                 <span>Follow A.R.E.N.A on Instagram</span>
                 <ExternalLink className="w-3.5 h-3.5 opacity-80" />
               </a>
+            </div>
 
+            {/* Receipt Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={() => window.print()}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white text-black font-extrabold text-xs uppercase tracking-widest font-mono hover:bg-amber-400 transition-colors"
