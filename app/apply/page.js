@@ -11,8 +11,19 @@ import {
   AlertCircle,
   Loader2,
   Check,
-  Download
+  Download,
+  ExternalLink
 } from "lucide-react";
+
+function InstagramIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
 
 // Exact list of 11 sports requested by user
 const SPORTS_LIST = [
@@ -29,13 +40,15 @@ const SPORTS_LIST = [
   { id: "volleyball", name: "Volleyball", category: "Physical" },
 ];
 
-const YEAR_OPTIONS = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+const BRANCH_OPTIONS = ["IT", "MNC", "PNC", "CSE", "AI", "DS", "CS", "CPS", "ECE"];
+
+const YEAR_OPTIONS = ["1st Year", "2nd Year", "3rd Year", "4th Year", "MCA", "MTECH"];
 
 export default function ApplyPage() {
   const [formData, setFormData] = useState({
     name: "",
     scholarNo: "",
-    branch: "",
+    branch: BRANCH_OPTIONS[0],
     year: YEAR_OPTIONS[0],
     selectedSports: [],
   });
@@ -90,7 +103,7 @@ export default function ApplyPage() {
     }
 
     if (!formData.branch.trim()) {
-      setErrorMsg("Please enter your Branch.");
+      setErrorMsg("Please select your Branch.");
       return;
     }
 
@@ -210,11 +223,11 @@ export default function ApplyPage() {
 
               <div className="flex justify-between border-b border-zinc-900 pb-2">
                 <span className="text-zinc-500 font-mono">Branch:</span>
-                <span className="font-bold text-white">{successData.branch}</span>
+                <span className="font-bold text-white uppercase">{successData.branch}</span>
               </div>
 
               <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-mono">Academic Year:</span>
+                <span className="text-zinc-500 font-mono">Academic Year / Course:</span>
                 <span className="font-bold text-white">{successData.year}</span>
               </div>
 
@@ -230,10 +243,22 @@ export default function ApplyPage() {
               </div>
             </div>
 
+            {/* Action Buttons including Instagram Follow */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a
+                href="https://www.instagram.com/arena_iiitb?stkn=OGR5ZHphMWYwaTE2"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-full bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 text-white font-extrabold text-xs uppercase tracking-widest font-mono hover:opacity-90 transition-all duration-300 shadow-lg shadow-pink-500/20"
+              >
+                <InstagramIcon className="w-4 h-4" />
+                <span>Follow A.R.E.N.A on Instagram</span>
+                <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+              </a>
+
               <button
                 onClick={() => window.print()}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white text-black font-extrabold text-xs uppercase tracking-widest font-mono hover:bg-amber-400 transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white text-black font-extrabold text-xs uppercase tracking-widest font-mono hover:bg-amber-400 transition-colors"
               >
                 <Download className="w-4 h-4" />
                 <span>Save / Print Receipt</span>
@@ -245,12 +270,12 @@ export default function ApplyPage() {
                   setFormData({
                     name: "",
                     scholarNo: "",
-                    branch: "",
+                    branch: BRANCH_OPTIONS[0],
                     year: YEAR_OPTIONS[0],
                     selectedSports: [],
                   });
                 }}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 font-mono text-xs font-bold uppercase tracking-widest hover:text-white hover:border-zinc-700"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 font-mono text-xs font-bold uppercase tracking-widest hover:text-white hover:border-zinc-700"
               >
                 <span>Register Another Student</span>
               </button>
@@ -311,30 +336,33 @@ export default function ApplyPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {/* Writable Branch Field */}
+                {/* Selectable Branch Field */}
                 <div>
                   <label className="block text-xs font-mono text-zinc-400 uppercase tracking-wider mb-2">
                     Branch *
                   </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. CSE, IT, ECE, AI & DS"
+                  <select
                     value={formData.branch}
                     onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                    className="w-full bg-[#050608] border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400 transition-colors font-['Space_Grotesk']"
-                  />
+                    className="w-full bg-[#050608] border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400 transition-colors font-['Space_Grotesk'] cursor-pointer"
+                  >
+                    {BRANCH_OPTIONS.map((b, idx) => (
+                      <option key={idx} value={b} className="bg-[#050608] text-white">
+                        {b}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* Academic Year */}
+                {/* Academic Year / Course Field */}
                 <div>
                   <label className="block text-xs font-mono text-zinc-400 uppercase tracking-wider mb-2">
-                    Academic Year *
+                    Academic Year / Course *
                   </label>
                   <select
                     value={formData.year}
                     onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                    className="w-full bg-[#050608] border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400 transition-colors font-['Space_Grotesk']"
+                    className="w-full bg-[#050608] border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400 transition-colors font-['Space_Grotesk'] cursor-pointer"
                   >
                     {YEAR_OPTIONS.map((y, idx) => (
                       <option key={idx} value={y} className="bg-[#050608] text-white">
@@ -428,7 +456,7 @@ export default function ApplyPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 rounded-full bg-white text-black hover:bg-amber-400 font-extrabold text-sm uppercase tracking-widest font-mono transition-all duration-300 flex items-center justify-center gap-2 shadow-xl shadow-white/5 disabled:opacity-50"
+                className="w-full py-4 rounded-full bg-white text-black hover:bg-amber-400 font-extrabold text-sm uppercase tracking-widest font-mono transition-all duration-300 flex items-center justify-center gap-2 shadow-xl shadow-white/5 disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
                   <>
