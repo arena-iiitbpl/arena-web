@@ -207,43 +207,6 @@ export default function ApplyPage() {
               REGISTRATION CONFIRMED!
             </h2>
 
-            <div className="inline-block px-4 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-amber-400 font-mono text-sm font-bold mb-8">
-              ID: {successData.id}
-            </div>
-
-            <div className="bg-[#050608] rounded-2xl p-6 text-left border border-zinc-800/80 mb-8 space-y-3 font-['Space_Grotesk'] text-sm">
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-mono">Student Name:</span>
-                <span className="font-bold text-white">{successData.name}</span>
-              </div>
-
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-mono">Scholar Number:</span>
-                <span className="font-bold text-white font-mono">{successData.scholarNo}</span>
-              </div>
-
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-mono">Branch:</span>
-                <span className="font-bold text-white uppercase">{successData.branch}</span>
-              </div>
-
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-mono">Academic Year / Course:</span>
-                <span className="font-bold text-white">{successData.year}</span>
-              </div>
-
-              <div>
-                <span className="text-zinc-500 font-mono block mb-2">Registered Sports ({successData.sports.length}):</span>
-                <div className="flex flex-wrap gap-2">
-                  {successData.sports.map((s, idx) => (
-                    <span key={idx} className="px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-400 font-mono text-xs font-bold">
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
             {/* Instagram QR Code & Community Card */}
             <div className="bg-gradient-to-br from-purple-950/40 via-pink-950/30 to-amber-950/40 border border-pink-500/40 rounded-3xl p-6 sm:p-8 mb-8 text-center flex flex-col items-center shadow-xl shadow-pink-500/5">
               <span className="text-[10px] font-mono font-bold uppercase tracking-[0.25em] text-pink-400 block mb-2">
