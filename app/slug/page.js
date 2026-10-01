@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MovingBackground from "@/components/MovingBackground";
@@ -19,8 +20,29 @@ import {
   Trophy,
   Loader2,
   Building2,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Link2,
+  Save,
+  Globe,
+  ExternalLink,
+  Sparkles,
+  Calendar
 } from "lucide-react";
+
+// Master list of 11 Sports from Registration Form
+const ALL_SPORTS = [
+  { id: "athletics", name: "Athletics", category: "Physical", icon: "🏃" },
+  { id: "badminton", name: "Badminton", category: "Physical", icon: "🏸" },
+  { id: "basketball", name: "Basketball", category: "Physical", icon: "🏀" },
+  { id: "carrom", name: "Carrom", category: "Indoor", icon: "🎯" },
+  { id: "chess", name: "Chess", category: "Indoor", icon: "♟️" },
+  { id: "cricket", name: "Cricket", category: "Physical", icon: "🏏" },
+  { id: "kabaddi", name: "Kabaddi", category: "Physical", icon: "🤼" },
+  { id: "football", name: "Football", category: "Physical", icon: "⚽" },
+  { id: "table_tennis", name: "Table Tennis", category: "Indoor", icon: "🏓" },
+  { id: "lawn_tennis", name: "Lawn Tennis", category: "Physical", icon: "🎾" },
+  { id: "volleyball", name: "Volleyball", category: "Physical", icon: "🏐" },
+];
 
 export default function SlugAdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -29,21 +51,42 @@ export default function SlugAdminPage() {
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
 
+  // Tab State
+  const [activeTab, setActiveTab] = useState("registrations"); // "registrations" | "embeds"
+
   // Dashboard state
   const [registrations, setRegistrations] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("ALL");
-  const [deleteTarget, setDeleteTarget] = useState(null); // Record to delete
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [actionNotice, setActionNotice] = useState("");
 
-  // Check existing session on mount
+  // Sports Embed Links state
+  const [embedLinks, setEmbedLinks] = useState({
+    cricket: "https://playpass.com/arena8-Of5hfCy/8-player-e-sports-schedule-RsF8Fnv?v=all",
+    athletics: "",
+    badminton: "",
+    basketball: "",
+    carrom: "",
+    chess: "",
+    kabaddi: "",
+    football: "",
+    table_tennis: "",
+    lawn_tennis: "",
+    volleyball: "",
+  });
+  const [savingEmbedId, setSavingEmbedId] = useState(null);
+  const [savingAllEmbeds, setSavingAllEmbeds] = useState(false);
+
+  // Check existing session on mount & load data
   useEffect(() => {
     const savedAuth = localStorage.getItem("slug_auth");
     if (savedAuth === "true") {
       setIsAuthenticated(true);
       fetchRegistrations();
+      fetchEmbedLinks();
     } else {
       setLoadingData(false);
     }
@@ -61,6 +104,31 @@ export default function SlugAdminPage() {
       console.error("Failed to fetch registrations:", err);
     } finally {
       setLoadingData(false);
+    }
+  };
+
+  const fetchEmbedLinks = async () => {
+    try {
+      // First load local storage cache
+      const updated = { ...embedLinks };
+      ALL_SPORTS.forEach((s) => {
+        const saved = localStorage.getItem(`arena_embed_${s.id}`);
+        if (saved) updated[s.id] = saved;
+      });
+
+      // Fetch latest from backend API
+      const res = await fetch("/api/embeds");
+      const data = await res.json();
+      if (data && data.embeds) {
+        Object.assign(updated, data.embeds);
+        // sync back to local storage
+        Object.entries(data.embeds).forEach(([key, val]) => {
+          if (val) localStorage.setItem(`arena_embed_${key}`, val);
+        });
+      }
+      setEmbedLinks(updated);
+    } catch (err) {
+      console.error("Failed to fetch embed links:", err);
     }
   };
 
@@ -85,6 +153,7 @@ export default function SlugAdminPage() {
         setIsAuthenticated(true);
         localStorage.setItem("slug_auth", "true");
         fetchRegistrations();
+        fetchEmbedLinks();
       } else {
         setLoginError(data.error || "Invalid Username or Password.");
       }
@@ -128,6 +197,87 @@ export default function SlugAdminPage() {
     }
   };
 
+  // Robust helper to extract clean URL from pasted iframe snippet, div-wrapped iframe, or raw URL
+  const extractUrl = (rawInput) => {
+    if (!rawInput) return "";
+    const cleaned = rawInput.trim();
+    if (cleaned.toLowerCase().includes("src=")) {
+      const match = cleaned.match(/src=["']?([^"'\s>]+)["']?/i);
+      if (match && match[1]) {
+        let url = match[1].replace(/^["']|["']$/g, "");
+        if (url.startsWith("//")) url = "https:" + url;
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+          return url;
+        }
+      }
+    }
+    return cleaned;
+  };
+
+  const handleEmbedChange = (sportId, value) => {
+    setEmbedLinks((prev) => ({ ...prev, [sportId]: value }));
+  };
+
+  const handleSaveSingleEmbed = async (sportId) => {
+    setSavingEmbedId(sportId);
+    const rawVal = embedLinks[sportId] || "";
+    const cleanUrl = extractUrl(rawVal);
+    
+    setEmbedLinks((prev) => ({ ...prev, [sportId]: cleanUrl }));
+    localStorage.setItem(`arena_embed_${sportId}`, cleanUrl);
+
+    try {
+      const res = await fetch("/api/embeds", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sportId, embedUrl: cleanUrl }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setActionNotice(`Saved embed link for ${sportId.toUpperCase().replace("_", " ")}`);
+        setTimeout(() => setActionNotice(""), 4000);
+      } else {
+        alert(data.error || "Failed to update embed link.");
+      }
+    } catch (err) {
+      alert("Network error updating embed link.");
+    } finally {
+      setSavingEmbedId(null);
+    }
+  };
+
+  const handleSaveAllEmbeds = async () => {
+    setSavingAllEmbeds(true);
+    const cleanedEmbeds = {};
+    Object.keys(embedLinks).forEach((key) => {
+      const clean = extractUrl(embedLinks[key] || "");
+      cleanedEmbeds[key] = clean;
+      localStorage.setItem(`arena_embed_${key}`, clean);
+    });
+    setEmbedLinks(cleanedEmbeds);
+
+    try {
+      const res = await fetch("/api/embeds", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ embeds: cleanedEmbeds }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setActionNotice("Successfully updated all sports embed links!");
+        setTimeout(() => setActionNotice(""), 4000);
+      } else {
+        alert(data.error || "Failed to update embed links.");
+      }
+    } catch (err) {
+      alert("Network error saving embed links.");
+    } finally {
+      setSavingAllEmbeds(false);
+    }
+  };
+
   // Filter registrations based on search term & branch
   const filteredRegistrations = registrations.filter((r) => {
     const matchesSearch =
@@ -148,7 +298,6 @@ export default function SlugAdminPage() {
     new Set(registrations.map((r) => (r.branch || "").trim().toUpperCase()).filter(Boolean))
   );
 
-  // Total Registrations = Sum of (candidate * selected sports)
   const totalSportsRegistrations = registrations.reduce((sum, r) => {
     const sportsCount = Array.isArray(r.sports) ? r.sports.length : 1;
     return sum + sportsCount;
@@ -188,7 +337,7 @@ export default function SlugAdminPage() {
                   ADMIN CONTROL DESK
                 </h1>
                 <p className="text-xs text-zinc-400 mt-2 font-['Space_Grotesk']">
-                  Enter credentials to access Sporlumina 2026 student registrations database.
+                  Enter credentials to access Sporlumina 2026 student registrations database and schedule links.
                 </p>
               </div>
 
@@ -231,7 +380,7 @@ export default function SlugAdminPage() {
                 <button
                   type="submit"
                   disabled={loginLoading}
-                  className="w-full py-4 rounded-xl bg-amber-400 text-black font-extrabold text-xs uppercase tracking-widest font-mono hover:bg-amber-300 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-amber-400/20 disabled:opacity-50 mt-4"
+                  className="w-full py-4 rounded-xl bg-amber-400 text-black font-extrabold text-xs uppercase tracking-widest font-mono hover:bg-amber-300 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-amber-400/20 disabled:opacity-50 mt-4 cursor-pointer"
                 >
                   {loginLoading ? (
                     <>
@@ -265,19 +414,22 @@ export default function SlugAdminPage() {
                   </span>
                 </div>
                 <h1 className="text-2xl sm:text-4xl font-black uppercase font-['Syne'] text-white">
-                  REGISTRATION DATABASE
+                  ADMIN CONTROL DESK
                 </h1>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
                 <button
-                  onClick={fetchRegistrations}
+                  onClick={() => {
+                    fetchRegistrations();
+                    fetchEmbedLinks();
+                  }}
                   disabled={loadingData}
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-mono text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors"
-                  title="Refresh table data"
+                  title="Refresh all data"
                 >
                   <RefreshCw className={`w-4 h-4 ${loadingData ? "animate-spin" : ""}`} />
-                  <span>Refresh</span>
+                  <span>Refresh Data</span>
                 </button>
 
                 <a
@@ -288,16 +440,6 @@ export default function SlugAdminPage() {
                 >
                   <FileSpreadsheet className="w-4 h-4" />
                   <span>Export .XLS</span>
-                </a>
-
-                <a
-                  href="/api/apply?format=csv"
-                  download="Sporlumina_Registrations.csv"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-mono text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors"
-                  title="Export database as CSV file"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>CSV</span>
                 </a>
 
                 <button
@@ -318,188 +460,350 @@ export default function SlugAdminPage() {
               </div>
             )}
 
-            {/* Analytics Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-[#090b0f]/90 border border-zinc-800 rounded-2xl p-5 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 flex-shrink-0">
-                  <Users className="w-6 h-6" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">
-                    TOTAL REGISTRATIONS
-                  </span>
-                  <span className="text-2xl font-black font-mono text-white block">
-                    {totalSportsRegistrations}
-                  </span>
-                </div>
-              </div>
+            {/* Main Section Navigation Tabs */}
+            <div className="flex border-b border-zinc-800 gap-2 sm:gap-4 overflow-x-auto pb-1">
+              <button
+                onClick={() => setActiveTab("registrations")}
+                className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl font-mono text-xs font-bold uppercase transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                  activeTab === "registrations"
+                    ? "bg-amber-400 text-black shadow-lg shadow-amber-500/20"
+                    : "bg-zinc-900/80 text-zinc-400 hover:text-white hover:bg-zinc-800"
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                <span>Registrations Database</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+                  activeTab === "registrations" ? "bg-black text-amber-400 font-bold" : "bg-zinc-800 text-zinc-400"
+                }`}>
+                  {registrations.length}
+                </span>
+              </button>
 
-              <div className="bg-[#090b0f]/90 border border-zinc-800 rounded-2xl p-5 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center text-cyan-400 flex-shrink-0">
-                  <Building2 className="w-6 h-6" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">
-                    UNIQUE BRANCHES
-                  </span>
-                  <span className="text-2xl font-black font-mono text-white">
-                    {uniqueBranches.length}
-                  </span>
-                </div>
-              </div>
-
-              <div className="bg-[#090b0f]/90 border border-zinc-800 rounded-2xl p-5 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center text-emerald-400 flex-shrink-0">
-                  <Trophy className="w-6 h-6" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">
-                    MOST POPULAR SPORT
-                  </span>
-                  <span className="text-lg font-bold font-mono text-white truncate max-w-[150px] block">
-                    {topSport}
-                  </span>
-                </div>
-              </div>
-
-              <div className="bg-[#090b0f]/90 border border-zinc-800 rounded-2xl p-5 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-purple-400/10 border border-purple-400/30 flex items-center justify-center text-purple-400 flex-shrink-0">
-                  <ShieldCheck className="w-6 h-6" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">
-                    SYSTEM STATUS
-                  </span>
-                  <span className="text-xs font-bold font-mono text-emerald-400 uppercase block mt-1">
-                    SUPABASE ACTIVE
-                  </span>
-                </div>
-              </div>
+              <button
+                onClick={() => setActiveTab("embeds")}
+                className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl font-mono text-xs font-bold uppercase transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                  activeTab === "embeds"
+                    ? "bg-amber-400 text-black shadow-lg shadow-amber-500/20"
+                    : "bg-zinc-900/80 text-zinc-400 hover:text-white hover:bg-zinc-800"
+                }`}
+              >
+                <Link2 className="w-4 h-4" />
+                <span>Match Schedule Embed Links</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+                  activeTab === "embeds" ? "bg-black text-amber-400 font-bold" : "bg-zinc-800 text-zinc-400"
+                }`}>
+                  11 Sports
+                </span>
+              </button>
             </div>
 
-            {/* Controls: Search and Branch Filter */}
-            <div className="bg-[#090b0f]/90 border border-zinc-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="relative w-full sm:w-96">
-                <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-zinc-500" />
-                <input
-                  type="text"
-                  placeholder="Search student, scholar no, branch, sport..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-[#050608] border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400 font-['Space_Grotesk']"
-                />
-              </div>
+            {/* TAB 1: REGISTRATIONS DATABASE */}
+            {activeTab === "registrations" && (
+              <div className="space-y-8">
+                {/* Analytics Stats Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-[#090b0f]/90 border border-zinc-800 rounded-2xl p-5 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-400 flex-shrink-0">
+                      <Users className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">
+                        TOTAL REGISTRATIONS
+                      </span>
+                      <span className="text-2xl font-black font-mono text-white block">
+                        {totalSportsRegistrations}
+                      </span>
+                    </div>
+                  </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Filter className="w-4 h-4 text-zinc-500" />
-                <span className="text-xs font-mono text-zinc-400">Branch:</span>
-                <select
-                  value={selectedBranch}
-                  onChange={(e) => setSelectedBranch(e.target.value)}
-                  className="bg-[#050608] border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
-                >
-                  <option value="ALL">All Branches ({uniqueBranches.length})</option>
-                  {uniqueBranches.map((b, idx) => (
-                    <option key={idx} value={b}>
-                      {b}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+                  <div className="bg-[#090b0f]/90 border border-zinc-800 rounded-2xl p-5 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center text-cyan-400 flex-shrink-0">
+                      <Building2 className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">
+                        UNIQUE BRANCHES
+                      </span>
+                      <span className="text-2xl font-black font-mono text-white">
+                        {uniqueBranches.length}
+                      </span>
+                    </div>
+                  </div>
 
-            {/* Registrations Data Table */}
-            <div className="bg-[#090b0f]/90 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-zinc-800 bg-[#050608]/80 text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
-                      <th className="py-4 px-6">ID</th>
-                      <th className="py-4 px-6">Student Name</th>
-                      <th className="py-4 px-6">Scholar No</th>
-                      <th className="py-4 px-6">Branch</th>
-                      <th className="py-4 px-6">Year</th>
-                      <th className="py-4 px-6">Sports Selected</th>
-                      <th className="py-4 px-6">Date</th>
-                      <th className="py-4 px-6 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-900 text-xs font-['Space_Grotesk']">
-                    {loadingData ? (
-                      <tr>
-                        <td colSpan={8} className="py-12 text-center text-zinc-500 font-mono">
-                          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-amber-400" />
-                          <span>FETCHING REGISTRATION DATA...</span>
-                        </td>
-                      </tr>
-                    ) : filteredRegistrations.length === 0 ? (
-                      <tr>
-                        <td colSpan={8} className="py-12 text-center text-zinc-500 font-mono">
-                          NO REGISTRATION ENTRIES FOUND
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredRegistrations.map((record) => (
-                        <tr
-                          key={record.id}
-                          className="hover:bg-zinc-900/50 transition-colors group"
-                        >
-                          <td className="py-4 px-6 font-mono font-bold text-amber-400">
-                            {record.id}
-                          </td>
-                          <td className="py-4 px-6 font-bold text-white">
-                            {record.name}
-                          </td>
-                          <td className="py-4 px-6 font-mono text-zinc-300">
-                            {record.scholarNo}
-                          </td>
-                          <td className="py-4 px-6 font-mono text-zinc-300 uppercase">
-                            <span className="px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 font-bold">
-                              {record.branch}
-                            </span>
-                          </td>
-                          <td className="py-4 px-6 text-zinc-400">
-                            {record.year}
-                          </td>
-                          <td className="py-4 px-6">
-                            <div className="flex flex-wrap gap-1.5 max-w-xs">
-                              {Array.isArray(record.sports) &&
-                                record.sports.map((sport, sIdx) => (
-                                  <span
-                                    key={sIdx}
-                                    className="px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-400 font-mono text-[10px] font-bold"
-                                  >
-                                    {sport}
-                                  </span>
-                                ))}
-                            </div>
-                          </td>
-                          <td className="py-4 px-6 font-mono text-[11px] text-zinc-500">
-                            {record.timestamp
-                              ? new Date(record.timestamp).toLocaleDateString("en-IN", {
-                                  day: "2-digit",
-                                  month: "short",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })
-                              : "N/A"}
-                          </td>
-                          <td className="py-4 px-6 text-right">
-                            <button
-                              onClick={() => setDeleteTarget(record)}
-                              className="inline-flex items-center justify-center p-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white transition-all duration-200"
-                              title="Delete Record"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </td>
+                  <div className="bg-[#090b0f]/90 border border-zinc-800 rounded-2xl p-5 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                      <Trophy className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">
+                        MOST POPULAR SPORT
+                      </span>
+                      <span className="text-lg font-bold font-mono text-white truncate max-w-[150px] block">
+                        {topSport}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#090b0f]/90 border border-zinc-800 rounded-2xl p-5 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-purple-400/10 border border-purple-400/30 flex items-center justify-center text-purple-400 flex-shrink-0">
+                      <ShieldCheck className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">
+                        SYSTEM STATUS
+                      </span>
+                      <span className="text-xs font-bold font-mono text-emerald-400 uppercase block mt-1">
+                        SUPABASE ACTIVE
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Controls: Search and Branch Filter */}
+                <div className="bg-[#090b0f]/90 border border-zinc-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="relative w-full sm:w-96">
+                    <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-zinc-500" />
+                    <input
+                      type="text"
+                      placeholder="Search student, scholar no, branch, sport..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full bg-[#050608] border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400 font-['Space_Grotesk']"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <Filter className="w-4 h-4 text-zinc-500" />
+                    <span className="text-xs font-mono text-zinc-400">Branch:</span>
+                    <select
+                      value={selectedBranch}
+                      onChange={(e) => setSelectedBranch(e.target.value)}
+                      className="bg-[#050608] border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                    >
+                      <option value="ALL">All Branches ({uniqueBranches.length})</option>
+                      {uniqueBranches.map((b, idx) => (
+                        <option key={idx} value={b}>
+                          {b}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Registrations Data Table */}
+                <div className="bg-[#090b0f]/90 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-zinc-800 bg-[#050608]/80 text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
+                          <th className="py-4 px-6">ID</th>
+                          <th className="py-4 px-6">Student Name</th>
+                          <th className="py-4 px-6">Scholar No</th>
+                          <th className="py-4 px-6">Branch</th>
+                          <th className="py-4 px-6">Year</th>
+                          <th className="py-4 px-6">Sports Selected</th>
+                          <th className="py-4 px-6">Date</th>
+                          <th className="py-4 px-6 text-right">Actions</th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-900 text-xs font-['Space_Grotesk']">
+                        {loadingData ? (
+                          <tr>
+                            <td colSpan={8} className="py-12 text-center text-zinc-500 font-mono">
+                              <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-amber-400" />
+                              <span>FETCHING REGISTRATION DATA...</span>
+                            </td>
+                          </tr>
+                        ) : filteredRegistrations.length === 0 ? (
+                          <tr>
+                            <td colSpan={8} className="py-12 text-center text-zinc-500 font-mono">
+                              NO REGISTRATION ENTRIES FOUND
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredRegistrations.map((record) => (
+                            <tr
+                              key={record.id}
+                              className="hover:bg-zinc-900/50 transition-colors group"
+                            >
+                              <td className="py-4 px-6 font-mono font-bold text-amber-400">
+                                {record.id}
+                              </td>
+                              <td className="py-4 px-6 font-bold text-white">
+                                {record.name}
+                              </td>
+                              <td className="py-4 px-6 font-mono text-zinc-300">
+                                {record.scholarNo}
+                              </td>
+                              <td className="py-4 px-6 font-mono text-zinc-300 uppercase">
+                                <span className="px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 font-bold">
+                                  {record.branch}
+                                </span>
+                              </td>
+                              <td className="py-4 px-6 text-zinc-400">
+                                {record.year}
+                              </td>
+                              <td className="py-4 px-6">
+                                <div className="flex flex-wrap gap-1.5 max-w-xs">
+                                  {Array.isArray(record.sports) &&
+                                    record.sports.map((sport, sIdx) => (
+                                      <span
+                                        key={sIdx}
+                                        className="px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-400 font-mono text-[10px] font-bold"
+                                      >
+                                        {sport}
+                                      </span>
+                                    ))}
+                                </div>
+                              </td>
+                              <td className="py-4 px-6 font-mono text-[11px] text-zinc-500">
+                                {record.timestamp
+                                  ? new Date(record.timestamp).toLocaleDateString("en-IN", {
+                                      day: "2-digit",
+                                      month: "short",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })
+                                  : "N/A"}
+                              </td>
+                              <td className="py-4 px-6 text-right">
+                                <button
+                                  onClick={() => setDeleteTarget(record)}
+                                  className="inline-flex items-center justify-center p-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white transition-all duration-200"
+                                  title="Delete Record"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* TAB 2: MATCH SCHEDULE & STANDINGS EMBED LINKS MANAGEMENT */}
+            {activeTab === "embeds" && (
+              <div className="space-y-6">
+                <div className="bg-[#090b0f]/90 border border-zinc-800 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-xl">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2 text-amber-400">
+                      <Sparkles className="w-5 h-5" />
+                      <h2 className="text-xl font-bold font-['Syne'] uppercase text-white tracking-wide">
+                        SPORTS EMBED LINKS MANAGEMENT
+                      </h2>
+                    </div>
+                    <p className="text-xs text-zinc-400 max-w-2xl font-['Space_Grotesk'] leading-relaxed">
+                      Configure or change embedded tournament links for each sport (Playpass, Challonge, Tournify, Google Sheets, etc.). You can paste direct URLs or full <code className="text-amber-400 font-mono">&lt;iframe src="..."&gt;&lt;/iframe&gt;</code> HTML snippets.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleSaveAllEmbeds}
+                    disabled={savingAllEmbeds}
+                    className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-mono font-bold text-xs uppercase px-6 py-3 rounded-2xl transition-all shadow-lg shadow-amber-500/20 whitespace-nowrap cursor-pointer disabled:opacity-50"
+                  >
+                    {savingAllEmbeds ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Saving All Links...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        <span>Save All 11 Links</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Grid of 11 Sports Embed Controls */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {ALL_SPORTS.map((sport) => {
+                    const currentVal = embedLinks[sport.id] || "";
+                    const isSaving = savingEmbedId === sport.id;
+
+                    return (
+                      <div
+                        key={sport.id}
+                        className="bg-[#090b0f]/90 border border-zinc-800/90 rounded-2xl p-5 space-y-4 hover:border-amber-400/40 transition-all duration-300 flex flex-col justify-between"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-xl">
+                                {sport.icon}
+                              </div>
+                              <div>
+                                <h3 className="text-base font-bold font-['Syne'] uppercase text-white flex items-center gap-2">
+                                  <span>{sport.name}</span>
+                                  {currentVal && (
+                                    <span className="w-2 h-2 rounded-full bg-emerald-400" title="Active Link Configured" />
+                                  )}
+                                </h3>
+                                <span className="text-[10px] font-mono text-zinc-500 uppercase">
+                                  {sport.category} Discipline • ID: {sport.id}
+                                </span>
+                              </div>
+                            </div>
+
+                            <Link
+                              href={`/schedule/${sport.id}`}
+                              target="_blank"
+                              className="inline-flex items-center gap-1.5 text-[11px] font-mono text-amber-400 hover:underline bg-amber-400/10 px-3 py-1.5 rounded-xl border border-amber-400/30"
+                            >
+                              <span>View Page</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </Link>
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-mono text-zinc-400 uppercase tracking-wider mb-1.5">
+                              Embed Link / Iframe Code
+                            </label>
+                            <input
+                              type="text"
+                              value={currentVal}
+                              onChange={(e) => handleEmbedChange(sport.id, e.target.value)}
+                              placeholder='Paste URL or <iframe src="https://..."></iframe>'
+                              className="w-full bg-[#050608] border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-amber-400 font-mono transition-colors"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-900">
+                          <button
+                            type="button"
+                            onClick={() => handleEmbedChange(sport.id, "")}
+                            className="text-[10px] font-mono uppercase text-zinc-500 hover:text-red-400 px-2 py-1"
+                          >
+                            Clear
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleSaveSingleEmbed(sport.id)}
+                            disabled={isSaving}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-200 hover:text-black hover:bg-amber-400 hover:border-amber-400 transition-all font-mono text-xs font-bold uppercase cursor-pointer disabled:opacity-50"
+                          >
+                            {isSaving ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                            ) : (
+                              <Save className="w-3.5 h-3.5" />
+                            )}
+                            <span>Save Link</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
           </div>
         )}
 
@@ -530,7 +834,7 @@ export default function SlugAdminPage() {
                   type="button"
                   onClick={() => setDeleteTarget(null)}
                   disabled={deleteLoading}
-                  className="w-1/2 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 font-mono text-xs font-bold uppercase hover:bg-zinc-800 transition-colors"
+                  className="w-1/2 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 font-mono text-xs font-bold uppercase hover:bg-zinc-800 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -538,7 +842,7 @@ export default function SlugAdminPage() {
                   type="button"
                   onClick={handleDeleteRecord}
                   disabled={deleteLoading}
-                  className="w-1/2 py-3 rounded-xl bg-red-500 text-white font-mono text-xs font-bold uppercase hover:bg-red-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-red-500/20 disabled:opacity-50"
+                  className="w-1/2 py-3 rounded-xl bg-red-500 text-white font-mono text-xs font-bold uppercase hover:bg-red-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-red-500/20 disabled:opacity-50 cursor-pointer"
                 >
                   {deleteLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

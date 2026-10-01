@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, X, Trophy, Users, ClipboardList } from "lucide-react";
+import { Menu, X, Trophy, Users, ClipboardList, Calendar } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();

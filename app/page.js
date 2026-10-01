@@ -131,13 +131,14 @@ export default function Home() {
           <span>Open Registration Form</span>
           <ArrowUpRight />
         </Link>
-        <small id="application-status">Multivalued sports selection • Writable branch entry • Direct confirmation receipt</small>
+        <small id="application-status">Multivalued sports selection • Selectable branch entry • Direct confirmation receipt</small>
       </section>
+
 
       {/* Dedicated Meet The Team Section */}
       <section className="team-section" data-reveal id="team">
         <div className="team-container">
-          <div className="team-badge">02 // OUR LEADERSHIP</div>
+          <div className="team-badge">03 // OUR LEADERSHIP</div>
           <h2 className="team-heading">MEET THE <span>TEAM</span></h2>
           <p className="team-subtext">
             Meet the student coordinators, organizers, and council members driving A.R.E.N.A and Sporlumina 2026 at IIIT Bhopal.

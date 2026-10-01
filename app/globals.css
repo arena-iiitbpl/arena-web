@@ -332,6 +332,86 @@ button, a { -webkit-tap-highlight-color: transparent; }
   box-shadow: 0 12px 35px rgba(255, 176, 0, 0.35);
 }
 
+/* Match Schedule Layer Section */
+.schedule-layer-section {
+  position: relative;
+  display: flex;
+  min-height: 520px;
+  overflow: hidden;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 110px clamp(24px, 7vw, 112px);
+  background: radial-gradient(circle at 50% 50%, rgba(84, 232, 255, 0.12), transparent 42%), #080c0d;
+  border-top: 1px solid var(--line);
+}
+.schedule-layer-section::before {
+  content: "";
+  position: absolute;
+  width: 720px;
+  height: 720px;
+  border: 1px solid rgba(84, 232, 255, 0.15);
+  border-radius: 50%;
+  box-shadow: inset 0 0 100px rgba(84, 232, 255, 0.03);
+  pointer-events: none;
+}
+.schedule-layer-container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.schedule-layer-section .eyebrow {
+  color: var(--esport);
+}
+.schedule-layer-section h2 {
+  margin: 20px 0 22px;
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(48px, 6.5vw, 110px);
+  font-weight: 800;
+  letter-spacing: -.07em;
+  line-height: .88;
+  text-transform: uppercase;
+}
+.schedule-layer-section h2 em {
+  color: var(--esport);
+  font-style: normal;
+}
+.schedule-layer-section p {
+  max-width: 560px;
+  margin: 0 0 32px;
+  color: #b1b4ac;
+  font-size: 16px;
+  line-height: 1.7;
+}
+.schedule-layer-cta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 32px;
+  color: #050608;
+  border: 1px solid var(--esport);
+  background: var(--esport);
+  font: 800 12px/1 sans-serif;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  transition: transform .25s, box-shadow .25s;
+  box-shadow: 0 0 30px rgba(84, 232, 255, 0.25);
+}
+.schedule-layer-cta:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 45px rgba(84, 232, 255, 0.45);
+}
+.schedule-layer-section small {
+  margin-top: 18px;
+  color: #8e9288;
+  font-size: 11px;
+  font-family: monospace;
+}
+
 footer { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; padding: 45px clamp(24px, 7vw, 112px); border-top: 1px solid var(--line); background: #070908; }
 footer > p { color: #92968d; font-size: 11px; line-height: 1.7; text-align: center; text-transform: uppercase; letter-spacing: .07em; }
 footer > div:last-child { display: flex; justify-content: flex-end; align-items: center; gap: 9px; color: #9da198; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
