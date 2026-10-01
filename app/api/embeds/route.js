@@ -4,7 +4,7 @@ import path from "path";
 
 // In-memory cache & fallback persistence store
 let embedLinksStore = {
-  cricket: "https://playpass.com/arena8-Of5hfCy/8-player-e-sports-schedule-RsF8Fnv?v=all",
+  cricket: "",
   athletics: "",
   badminton: "",
   basketball: "",

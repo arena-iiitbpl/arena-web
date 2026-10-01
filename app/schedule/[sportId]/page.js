@@ -15,7 +15,7 @@ const SPORTS_DATA = {
   basketball: { name: "Basketball", category: "Physical", icon: "🏀", defaultUrl: "" },
   carrom: { name: "Carrom", category: "Indoor", icon: "🎯", defaultUrl: "" },
   chess: { name: "Chess", category: "Indoor", icon: "♟️", defaultUrl: "" },
-  cricket: { name: "Cricket", category: "Physical", icon: "🏏", defaultUrl: "https://playpass.com/arena8-Of5hfCy/8-player-e-sports-schedule-RsF8Fnv?v=all" },
+  cricket: { name: "Cricket", category: "Physical", icon: "🏏", defaultUrl: "" },
   kabaddi: { name: "Kabaddi", category: "Physical", icon: "🤼", defaultUrl: "" },
   football: { name: "Football", category: "Physical", icon: "⚽", defaultUrl: "" },
   table_tennis: { name: "Table Tennis", category: "Indoor", icon: "🏓", defaultUrl: "" },
