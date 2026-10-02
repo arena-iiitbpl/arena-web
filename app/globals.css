@@ -343,7 +343,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   justify-content: center;
   text-align: center;
   padding: 110px clamp(24px, 7vw, 112px);
-  background: radial-gradient(circle at 50% 55%, rgba(251,191,36,.12), transparent 38%), #0c0e08;
+  background: radial-gradient(circle at 50% 50%, rgba(84, 232, 255, 0.12), transparent 42%), #080c0d;
   border-top: 1px solid var(--line);
 }
 .schedule-layer-section::before {
@@ -351,9 +351,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
   position: absolute;
   width: 720px;
   height: 720px;
-  border: 1px solid rgba(251,191,36,.14);
+  border: 1px solid rgba(84, 232, 255, 0.15);
   border-radius: 50%;
-  box-shadow: inset 0 0 100px rgba(251,191,36,.03);
+  box-shadow: inset 0 0 100px rgba(84, 232, 255, 0.03);
   pointer-events: none;
 }
 .schedule-layer-container {
@@ -364,7 +364,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   align-items: center;
 }
 .schedule-layer-section .eyebrow {
-  color: var(--acid);
+  color: var(--esport);
 }
 .schedule-layer-section h2 {
   margin: 20px 0 22px;
@@ -376,7 +376,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   text-transform: uppercase;
 }
 .schedule-layer-section h2 em {
-  color: var(--acid);
+  color: var(--esport);
   font-style: normal;
 }
 .schedule-layer-section p {
@@ -387,24 +387,22 @@ button, a { -webkit-tap-highlight-color: transparent; }
   line-height: 1.7;
 }
 .schedule-layer-cta {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 18px;
-  padding: 18px 32px;
-  color: #0c0e08;
-  border: 1px solid #fff;
-  background: #fff;
-  font: 800 12px/1 sans-serif;
-  letter-spacing: .1em;
+  gap: 10px;
+  padding: 12px 24px;
+  color: #050608;
+  border: 1px solid var(--esport);
+  background: var(--esport);
+  font: 700 14px/1 'Space Grotesk', sans-serif;
+  letter-spacing: .04em;
   text-transform: uppercase;
   border-radius: 999px;
-  transition: transform .25s, box-shadow .25s, background .25s;
+  transition: transform .25s, box-shadow .25s;
 }
 .schedule-layer-cta:hover {
   transform: translateY(-3px);
-  background: var(--acid);
-  border-color: var(--acid);
-  box-shadow: 0 14px 40px rgba(216,255,62,.3);
+  box-shadow: 0 10px 35px rgba(84, 232, 255, 0.35);
 }
 .schedule-layer-section small {
   margin-top: 18px;
