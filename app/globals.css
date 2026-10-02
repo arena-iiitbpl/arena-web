@@ -336,14 +336,14 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .schedule-layer-section {
   position: relative;
   display: flex;
-  min-height: 520px;
+  min-height: 620px;
   overflow: hidden;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: 110px clamp(24px, 7vw, 112px);
-  background: radial-gradient(circle at 50% 50%, rgba(84, 232, 255, 0.12), transparent 42%), #080c0d;
+  background: radial-gradient(circle at 50% 55%, rgba(251,191,36,.12), transparent 38%), #0c0e08;
   border-top: 1px solid var(--line);
 }
 .schedule-layer-section::before {
@@ -351,9 +351,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
   position: absolute;
   width: 720px;
   height: 720px;
-  border: 1px solid rgba(84, 232, 255, 0.15);
+  border: 1px solid rgba(251,191,36,.14);
   border-radius: 50%;
-  box-shadow: inset 0 0 100px rgba(84, 232, 255, 0.03);
+  box-shadow: inset 0 0 100px rgba(251,191,36,.03);
   pointer-events: none;
 }
 .schedule-layer-container {
@@ -364,24 +364,24 @@ button, a { -webkit-tap-highlight-color: transparent; }
   align-items: center;
 }
 .schedule-layer-section .eyebrow {
-  color: var(--esport);
+  color: var(--acid);
 }
 .schedule-layer-section h2 {
   margin: 20px 0 22px;
   font-family: 'Syne', sans-serif;
-  font-size: clamp(48px, 6.5vw, 110px);
+  font-size: clamp(52px, 7vw, 120px);
   font-weight: 800;
   letter-spacing: -.07em;
-  line-height: .88;
+  line-height: .85;
   text-transform: uppercase;
 }
 .schedule-layer-section h2 em {
-  color: var(--esport);
+  color: var(--acid);
   font-style: normal;
 }
 .schedule-layer-section p {
-  max-width: 560px;
-  margin: 0 0 32px;
+  max-width: 540px;
+  margin: 0 0 36px;
   color: #b1b4ac;
   font-size: 16px;
   line-height: 1.7;
@@ -389,21 +389,22 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .schedule-layer-cta {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
   padding: 18px 32px;
-  color: #050608;
-  border: 1px solid var(--esport);
-  background: var(--esport);
+  color: #0c0e08;
+  border: 1px solid #fff;
+  background: #fff;
   font: 800 12px/1 sans-serif;
   letter-spacing: .1em;
   text-transform: uppercase;
   border-radius: 999px;
-  transition: transform .25s, box-shadow .25s;
-  box-shadow: 0 0 30px rgba(84, 232, 255, 0.25);
+  transition: transform .25s, box-shadow .25s, background .25s;
 }
 .schedule-layer-cta:hover {
   transform: translateY(-3px);
-  box-shadow: 0 14px 45px rgba(84, 232, 255, 0.45);
+  background: var(--acid);
+  border-color: var(--acid);
+  box-shadow: 0 14px 40px rgba(216,255,62,.3);
 }
 .schedule-layer-section small {
   margin-top: 18px;
