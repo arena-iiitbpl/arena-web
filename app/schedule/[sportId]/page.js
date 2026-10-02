@@ -136,14 +136,6 @@ export default function SportEmbedPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className="inline-flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-amber-400 hover:text-black bg-amber-400/10 hover:bg-amber-400 px-3.5 py-2 rounded-xl border border-amber-400/40 transition-all"
-            >
-              <Settings className="w-4 h-4" />
-              <span>{isEditing ? "Close Editor" : "Paste / Update Link"}</span>
-            </button>
-
             {embedUrl && (
               <a
                 href={embedUrl}
@@ -157,44 +149,6 @@ export default function SportEmbedPage() {
             )}
           </div>
         </div>
-
-        {/* Link Input Drawer */}
-        {(isEditing || !embedUrl) && (
-          <div className="mb-6 bg-[#0c0e14] border border-amber-500/30 rounded-2xl p-5 shadow-2xl shadow-amber-500/5 transition-all">
-            <div className="flex items-center gap-2 mb-3 text-amber-400">
-              <Sparkles className="w-4 h-4" />
-              <h2 className="text-sm font-bold uppercase tracking-wider font-mono">
-                {embedUrl ? "Update Embed Link for " + sport.name : "Embed Standings for " + sport.name}
-              </h2>
-            </div>
-            <p className="text-xs text-zinc-400 mb-4 font-['Space_Grotesk']">
-              Paste the iframe URL or HTML embed snippet provided for {sport.name} standings.
-            </p>
-            <form onSubmit={handleSaveUrl} className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="text"
-                value={inputUrl}
-                onChange={(e) => setInputUrl(e.target.value)}
-                placeholder='Paste iframe src URL or iframe code e.g. <iframe src="https://..."></iframe>'
-                className="flex-grow bg-[#050608] border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400 font-mono text-xs"
-              />
-              <button
-                type="submit"
-                className="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-mono font-bold text-xs uppercase px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-amber-500/20 whitespace-nowrap"
-              >
-                Save & Display
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* Saved Success Notification */}
-        {savedSuccess && (
-          <div className="mb-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 flex items-center gap-2 text-emerald-400 text-xs font-mono">
-            <Check className="w-4 h-4" />
-            <span>Embed URL saved successfully for {sport.name}!</span>
-          </div>
-        )}
 
         {/* Embed Display Container */}
         <div className="bg-[#090b0f] border border-zinc-800 rounded-2xl overflow-hidden min-h-[70vh] flex flex-col shadow-2xl relative">
@@ -229,23 +183,16 @@ export default function SportEmbedPage() {
 
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-400 font-mono text-[10px] font-bold uppercase tracking-widest mb-4">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                <span>SCHEDULE NOT UPDATED YET</span>
+                <span>NO SCHEDULE ADDED YET</span>
               </div>
 
               <h2 className="text-2xl sm:text-3xl font-black font-['Syne'] uppercase text-white mb-3 tracking-wide">
-                SCHEDULE NOT UPDATED
+                NO SCHEDULE ADDED
               </h2>
 
               <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto mb-8 font-['Space_Grotesk'] leading-relaxed">
-                The official match schedule and standings fixture for <strong className="text-white">{sport.name}</strong> have not been updated by the event coordinators yet. Please check back soon.
+                No match schedule or standings link has been added for <strong className="text-white">{sport.name}</strong> yet. Please check back soon.
               </p>
-
-              <button
-                onClick={() => setIsEditing(true)}
-                className="inline-flex items-center gap-2 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-amber-400 hover:border-amber-400/50 font-mono text-xs font-bold uppercase px-5 py-2.5 rounded-xl transition-all"
-              >
-                <span>Admin: Add Embed Link</span>
-              </button>
             </div>
           )}
         </div>

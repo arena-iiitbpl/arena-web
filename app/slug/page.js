@@ -218,6 +218,33 @@ export default function SlugAdminPage() {
     setEmbedLinks((prev) => ({ ...prev, [sportId]: value }));
   };
 
+  const handleClearEmbed = async (sportId) => {
+    setSavingEmbedId(sportId);
+    setEmbedLinks((prev) => ({ ...prev, [sportId]: "" }));
+    localStorage.removeItem(`arena_embed_${sportId}`);
+    localStorage.setItem(`arena_embed_${sportId}`, "");
+
+    try {
+      const res = await fetch("/api/embeds", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sportId, embedUrl: "" }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setActionNotice(`Cleared schedule link for ${sportId.toUpperCase().replace("_", " ")}. 'No Schedule Added' screen is now active.`);
+        setTimeout(() => setActionNotice(""), 4000);
+      } else {
+        alert(data.error || "Failed to clear embed link.");
+      }
+    } catch (err) {
+      alert("Network error clearing embed link.");
+    } finally {
+      setSavingEmbedId(null);
+    }
+  };
+
   const handleSaveSingleEmbed = async (sportId) => {
     setSavingEmbedId(sportId);
     const rawVal = embedLinks[sportId] || "";
@@ -777,10 +804,12 @@ export default function SlugAdminPage() {
                         <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-900">
                           <button
                             type="button"
-                            onClick={() => handleEmbedChange(sport.id, "")}
-                            className="text-[10px] font-mono uppercase text-zinc-500 hover:text-red-400 px-2 py-1"
+                            onClick={() => handleClearEmbed(sport.id)}
+                            disabled={isSaving}
+                            className="text-[10px] font-mono uppercase text-zinc-500 hover:text-red-400 px-2 py-1 cursor-pointer disabled:opacity-50"
+                            title="Clear iframe link and reset to 'No Schedule Added' screen"
                           >
-                            Clear
+                            Clear Link
                           </button>
 
                           <button
