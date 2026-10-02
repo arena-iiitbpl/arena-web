@@ -12,6 +12,7 @@ export default function Navbar() {
 
   const navLinks = [
     { name: "Home", href: "/", icon: Trophy },
+    { name: "Standings", href: "/schedule", icon: Calendar },
     { name: "Meet the Team", href: "/team", icon: Users },
     { name: "Apply for Sporlumina", href: "/apply", icon: ClipboardList },
   ];

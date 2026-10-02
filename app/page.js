@@ -29,6 +29,7 @@ export default function Home() {
         <nav aria-label="Main navigation">
           <a href="#manifesto">Manifesto</a>
           <a href="#sports">Disciplines</a>
+          <Link href="/schedule">Standings</Link>
           <Link href="/team">Team</Link>
         </nav>
         <Link className="nav-cta" href="/apply">
@@ -134,6 +135,21 @@ export default function Home() {
         <small id="application-status">Multivalued sports selection • Selectable branch entry • Direct confirmation receipt</small>
       </section>
 
+      {/* Match Schedule & Standings */}
+      <section className="schedule-layer-section" data-reveal id="schedule">
+        <div className="schedule-layer-container">
+          <span className="eyebrow"><b>02</b> SPORLUMINA 2026 FIXTURES</span>
+          <h2>Match Schedule &amp;<br /><em>Standings</em></h2>
+          <p>
+            Track live match schedules, tournament brackets, standing tables, and game results across all 11 sports disciplines.
+          </p>
+          <Link className="schedule-layer-cta" href="/schedule">
+            <span>View Standings &amp; Schedule</span>
+            <ArrowUpRight />
+          </Link>
+          <small id="schedule-status">11 Sports Disciplines • Live Tournament Standings &amp; Match Fixtures</small>
+        </div>
+      </section>
 
       {/* Dedicated Meet The Team Section */}
       <section className="team-section" data-reveal id="team">
