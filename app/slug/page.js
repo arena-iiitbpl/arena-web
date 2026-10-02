@@ -117,7 +117,7 @@ export default function SlugAdminPage() {
       });
 
       // Fetch latest from backend API
-      const res = await fetch("/api/embeds");
+      const res = await fetch("/api/embeds", { cache: "no-store" });
       const data = await res.json();
       if (data && data.embeds) {
         Object.assign(updated, data.embeds);

@@ -68,7 +68,7 @@ export default function SportEmbedPage() {
       }
 
       // Fetch latest from API
-      fetch("/api/embeds")
+      fetch("/api/embeds", { cache: "no-store" })
         .then((res) => res.json())
         .then((data) => {
           if (data && data.embeds && data.embeds[sportId]) {
